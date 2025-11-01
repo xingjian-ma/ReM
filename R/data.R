@@ -1,27 +1,41 @@
-# ==========================================================
-# Required packages
-# ==========================================================
-library(MASS)      # for mvrnorm()
-library(sandwich)  # for robust covariance (vcovHC)
-library(lmtest)    # for coeftest()
+#' Centered Covariate Generation Function
+#'
+#' Generates n observations of K covariates drawn from a multivariate normal distribution with zero mean and specified covariance structure.
+#' @param n Interger scalar; number of observations. n > 2.
+#' @param K Integer scalar; number of covariates. K > 0.
+#' @param Sigma_X Numeric matrix; K × K covariance matrix for X and must be positive semi definite. Default is identity matrix (independent covariates).
+#' @param seed Integer scalar; random seed  reproducibility. Default is NULL (no seed set).
+#'
+#' @return A list containing:
+#' \describe{
+#'  \item{X}{Numeric matrix; n × K covariate matrix drawn from N(0, Sigma).}
+#'  \item{Sigma_X}{Numeric matrix; K × K covariance matrix used to generate X.}
+#'}
+#'
+#' @examples
+#' set.seed(123)
+#' X_data <- gen_X(n = 100, K = 5)
+#'
+#' @export
+gen_X <- function(n, K, Sigma_X = diag(K), seed = NULL) {
 
-# ==========================================================
-# 1) Generate covariates X (n × K)
-#    - Supports identity or AR(1) covariance structure
-#    - Optionally allows custom Sigma
-# ==========================================================
-gen_X <- function(n, K, rho = 0, Sigma = diag(K), seed = NULL) {
+  # Check inputs
+  checkmate::assert_count(n)
+  checkmate::assert_count(K)
+  checkmate::assert_matrix(Sigma_X, mode = "numeric", nrows = K, ncols = K, any.missing = FALSE)
+  # still need to check psd
+  checkmate::assert_count(seed)
+
+  as.integer(n)
+  as.integer(K)
+
+  checkmate::assert_integer(n, lower = 2, any.missing = FALSE)
+  checkmate::assert_integer(K, lower = 1, any.missing = FALSE)
+
+
+  # Set parameters
   if (!is.null(seed)) set.seed(seed)
 
-  # Construct covariance matrix
-  if (is.null(Sigma)) {
-    if (rho == 0) {
-      Sigma <- diag(K)                      # independent covariates
-    } else {
-      idx <- 1:K
-      Sigma <- rho^abs(outer(idx, idx, "-")) # AR(1) correlation structure
-    }
-  }
 
   # Generate X ~ N(0, Sigma)
   X <- MASS::mvrnorm(n = n, mu = rep(0, K), Sigma = Sigma)
@@ -163,16 +177,16 @@ est_adjusted <- function(Y, Z, X, center = TRUE, hc_type = "HC3") {
 
 
 
-# 
-# 
-# 
+#
+#
+#
 # X <- gen_X(n = 100, K = 5, seed = 123)
 # beta <- gen_beta(Sigma = diag(5), R2 = 0.5, seed = 123)
 # Y <- gen_Y(X = X$X, beta = beta)
-# 
-# 
+#
+#
 # Z <- ReM(X = X$X, n_1 = 50, p_a = 0.1, seed = 123)$Z
-# 
+#
 # est_unadjusted(Y = Y$Y1 * Z + Y$Y0 * (1 - Z), Z = Z)
 # est_adjusted(Y = Y$Y1 * Z + Y$Y0 * (1 - Z), Z = Z, X = X$X)
 

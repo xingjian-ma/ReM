@@ -33,7 +33,7 @@ A list containing:
 This function implements a rerandomization design based on Mahalanobis distance.
 }
 \examples{
-#' set.seed(123)
+set.seed(123)
 X <- matrix(rnorm(100 * 3), nrow = 100, ncol = 3)  # 100 units, 3 covariates
 result <- ReM(X, n_1 = 50, p_a = 0.1, max_tries = 10000)
 

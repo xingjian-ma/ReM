@@ -7,7 +7,7 @@
 #' @param a Numeric scalar; Mahalanobis distan. If NULL, it is computed from p_a. Default is NULL. If provided, p_a is ignored.
 #' @param max_tries Integer scalar; maximum number of random draws before giving up, default is 10000.
 #' @param seed Integer scalar; optional random seed for reproducibility, default is NULL.
-#' 
+#'
 #' @return A list containing:
 #' \describe{
 #'   \item{Z}{Numeric vector; accepted treatment assignment with length n and values 0 (control) or 1 (treatment).}
@@ -16,12 +16,12 @@
 #'   \item{a}{Numeric scalar; threshold Mahalanobis distance used for acceptance.}
 #'   \item{p_a}{Numeric scalar; acceptance probability used.}
 #' }
-#' 
+#'
 #' @examples
-#' #' set.seed(123)
+#' set.seed(123)
 #' X <- matrix(rnorm(100 * 3), nrow = 100, ncol = 3)  # 100 units, 3 covariates
 #' result <- ReM(X, n_1 = 50, p_a = 0.1, max_tries = 10000)
-#' 
+#'
 #' @export
 ReM <- function(X,
                 n_1,
@@ -29,26 +29,31 @@ ReM <- function(X,
                 a = NULL,
                 max_tries = 10000,
                 seed = NULL) {
-  
-  # input checks
+
+  # Check inputs
   checkmate::assert_matrix(X, mode = "numeric", min.rows = 2, min.cols = 1, any.missing = FALSE)
-  checkmate::assert_interger(n_1, lower = 1, upper = nrow(X) - 1, len = 1, any.missing = FALSE)
+  checkmate::assert_count(n_1)
   checkmate::assert_numeric(p_a, lower = 0, upper = 1, len = 1, any.missing = FALSE)
   checkmate::assert_true(p_a > 0)
   checkmate::assert_numeric(a, lower = 0, len = 1, null.ok = TRUE, any.missing = FALSE)
   checkmate::assert_true(a > 0)
-  checkmate::assert_integer(max_tries, lower = 1, len = 1, any.missing = FALSE)
-  checkmate::assert_integer(seed, lower = 0, upper = .Machine$integer.max, len = 1, null.ok = TRUE, any.missing = FALSE)
-  
-  
-  # set parameters
+  checkmate::assert_count(max_tries, lower = 1, len = 1, any.missing = FALSE)
+  checkmate::assert_count(seed)
+
+  as.integer(n_1)
+  as.integer(max_tries)
+
+  checkmate::assert_interger(n_1, lower = 1, upper = nrow(X) - 1, len = 1, any.missing = FALSE)
+  checkmate::assert_interger(max_tries, lower = 1, len = 1, any.missing = FALSE)
+
+  # Set parameters
   if (!is.null(a)) {
     # if a is provided, compute p_a from a
     # since under complete randomization (and large n) M² ~ χ²_K approximately.
     p_a <- pchisq(a, df = ncol(X))
   }
   if (!is.null(seed)) set.seed(seed)
-  
+
   # get dimensions
   n <- nrow(X)
   K <- ncol(X)
