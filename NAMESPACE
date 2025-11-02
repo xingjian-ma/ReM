@@ -2,3 +2,5 @@
 
 export(ReM)
 export(gen_X)
+export(gen_Y)
+export(gen_beta)

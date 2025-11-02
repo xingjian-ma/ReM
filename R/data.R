@@ -6,11 +6,7 @@
 #' @param Sigma_X Numeric matrix; K × K covariance matrix for X and must be positive semi definite. Default is identity matrix (independent covariates).
 #' @param seed Integer scalar; random seed  reproducibility. Default is NULL (no seed set).
 #'
-#' @return A list containing:
-#' \describe{
-#'  \item{X}{Numeric matrix; n × K covariate matrix drawn from N(0, Sigma).}
-#'  \item{Sigma_X}{Numeric matrix; K × K covariance matrix used to generate X.}
-#'}
+#' @return X Numeric matrix; n × K covariate matrix.
 #'
 #' @examples
 #' set.seed(123)
@@ -38,28 +34,48 @@ gen_X <- function(n, K, Sigma_X = diag(K), seed = NULL) {
 
 
   # Generate X ~ N(0, Sigma)
-  X <- MASS::mvrnorm(n = n, mu = rep(0, K), Sigma = Sigma)
-
-  list(X = X, Sigma = Sigma)
+  X <- MASS::mvrnorm(n = n, mu = rep(0, K), Sigma_X = Sigma_X)
+  return(X)
 }
 
-# ==========================================================
-# 2) Construct beta vector given target R^2
-#    - Scales direction vector v so that Var(Xβ) matches R^2
-# ==========================================================
-gen_beta <- function(Sigma, R2, sigma_e = 1, v = NULL, seed = NULL) {
-  K <- ncol(Sigma)
-  stopifnot(R2 >= 0 && R2 < 1)
-  if (!is.null(seed)) set.seed(seed)
 
-  # Random direction if none provided
+
+#' Beta Coefficient Generation Function
+#'
+#' Constructs a beta coefficient vector for covariates X such that the variance explained by the linear predictor Xβ matches a specified target R² value.
+#' @param Sigma_X Numeric matrix; K × K covariance matrix for X.
+#' @param R2 Numeric scalar; target R² value in [0, 1).
+#' @param Sigma_e Numeric scalar; standard deviation of the error term. Default is 1.
+#' @param v Numeric vector; unit direction vector for beta. If NULL, a random direction is generated. Default is NULL.
+#' @param seed Integer scalar; random seed for reproducibility. Default is NULL (no seed set).
+#'
+#' @return Numeric vector; beta coefficient vector of length K.
+#'
+#' @examples
+#' set.seed(123)
+#' beta <- gen_beta(Sigma_X = diag(5), R2 = 0.5)
+#'
+#' @export
+gen_beta <- function(Sigma_X, R2, Sigma_e = 1, v = NULL, seed = NULL) {
+
+  # Check inputs
+  checkmate::assert_matrix(Sigma_X, mode = "numeric", any.missing = FALSE)
+  checkmate::assert_numeric(R2, lower = 0, upper = 1, any.missing = FALSE, len = 1)
+  checkmate::assert_true(R2 < 1)
+  checkmate::assert_numeric(Sigma_e, lower = 0, any.missing = FALSE, len = 1)
+  checkmate::assert_true(Sigma_e > 0)
+  checkmate::assert_nu(v, any.missing = FALSE, len = ncol(Sigma_X))
+  checkmate::assert_count(seed)
+
+  # Set parameters
+  K <- ncol(Sigma_X)
+  if (!is.null(seed)) set.seed(seed)
   if (is.null(v)) v <- rnorm(K)
-  v <- v / sqrt(sum(v^2))                  # normalize to unit sphere
+  v <- v / sqrt(sum(v^2))
 
   # Compute target variance scale
-  c_target <- sqrt(R2 / (1 - R2)) * sigma_e
-  scale_fac <- c_target / sqrt(t(v) %*% Sigma %*% v)
-
+  c_target <- sqrt(R2 / (1 - R2)) * Sigma_e
+  scale_fac <- c_target / sqrt(t(v) %*% Sigma_X %*% v)
   beta <- as.numeric(scale_fac * v)
   beta
 }
@@ -69,24 +85,53 @@ gen_beta <- function(Sigma, R2, sigma_e = 1, v = NULL, seed = NULL) {
 #    - Model: Y(0) = μ + Xβ + ε,  Y(1) = μ + τ + Xβ + ε
 #    - If treatment vector W is provided, return observed Y
 # ==========================================================
-gen_Y <- function(X, beta, tau = 1, mu = 0, sigma_e = 1, Z = NULL, seed = NULL) {
-  if (!is.null(seed)) set.seed(seed)
 
+
+
+#' Outcome Generation Function
+#'
+#' Generates potential outcomes Y(0) and Y(1) based on a linear model with covariates X, coefficients beta, treatment effect tau, and error term. If a treatment assignment vector Z is provided, it also computes the observed outcomes Y.
+#' @param X Numeric matrix; n × K covariate matrix.
+#' @param beta Numeric vector; coefficient vector of length K.
+#' @param tau Numercalar; average treatment effect. Default is 1.
+#' @param mu Numeric scalar; intercept term. Default is 0.
+#' @param Sigma_e Numeric scalar; standard deviation of the error term. Default is 1.
+#' @param seed Integer scalar; random seed for reproducibility. Default is NULL (no seed set).
+#'
+#' @return A list containing:
+#' \describe{
+#'  \item{Y0}{Numeric vector; outcomes under control with length n.}
+#'  \item{Y1}{Numeric vector; outcomes under treatment with length n.}
+#' }
+#'
+#' @examples
+#' set.seed(123)
+#' X <- gen_X(n = 100, K = 5)
+#' beta <- gen_beta(Sigma_X = diag(5), R2 = 0.5)
+#' Y <- gen_Y(X = X, beta = beta)
+#'
+#' @export
+gen_Y <- function(X, beta, tau = 1, mu = 0, Sigma_e = 1, seed = NULL) {
+
+  # Check inputs
+  checkmate::assert_matrix(X, mode = "numeric", any.missing = FALSE)
+  checkmate::assert_numeric(beta, any.missing = FALSE, len = ncol(X))
+  checkmate::assert_numeric(tau, any.missing = FALSE, len = 1)
+  checkmate::assert_numeric(mu, any.missing = FALSE, len = 1)
+  checkmate::assert_numeric(Sigma_e, lower = 0, any.missing = FALSE, len = 1)
+  checkmate::assert_true(Sigma_e > 0)
+  checkmate::assert_count(seed)
+
+  # Set parameters
+  if (!is.null(seed)) set.seed(seed)
   n <- nrow(X)
   lin <- as.numeric(X %*% beta)
-  e   <- rnorm(n, 0, sigma_e)
+  e   <- rnorm(n, 0, Sigma_e)
 
   Y0 <- mu + lin + e
   Y1 <- mu + tau + lin + e
 
-  if (is.null(Z)) {
-    # Return potential outcomes if no assignment vector is given
-    return(list(Y0 = Y0, Y1 = Y1))
-  } else {
-    stopifnot(length(Z) == n)
-    Y <- ifelse(Z == 1, Y1, Y0)
-    return(list(Y = Y, Y0 = Y0, Y1 = Y1))
-  }
+  return(list(Y0 = Y0, Y1 = Y1))
 }
 
 # ==========================================================
@@ -166,9 +211,6 @@ est_adjusted <- function(Y, Z, X, center = TRUE, hc_type = "HC3") {
     fit      = fit
   )
 }
-
-
-
 
 
 

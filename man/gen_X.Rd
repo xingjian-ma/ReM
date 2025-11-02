@@ -16,11 +16,7 @@ gen_X(n, K, Sigma_X = diag(K), seed = NULL)
 \item{seed}{Integer scalar; random seed  reproducibility. Default is NULL (no seed set).}
 }
 \value{
-A list containing:
-\describe{
-\item{X}{Numeric matrix; n × K covariate matrix drawn from N(0, Sigma).}
-\item{Sigma_X}{Numeric matrix; K × K covariance matrix used to generate X.}
-}
+X Numeric matrix; n × K covariate matrix.
 }
 \description{
 Generates n observations of K covariates drawn from a multivariate normal distribution with zero mean and specified covariance structure.
