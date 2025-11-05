@@ -24,7 +24,6 @@ A list containing:
 Calculates the unadjusted difference-in-means estimator for the average treatment effect (ATE) along with its standard error and 95\% confidence interval.
 }
 \examples{
-set.seed(123)
 res <- est_diff_unadj(Y_obs = rnorm(100), Z = rbinom(100, 1, 0.5))
 
 }

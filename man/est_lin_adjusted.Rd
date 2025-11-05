@@ -4,7 +4,7 @@
 \alias{est_lin_adjusted}
 \title{Lin (2013) Regression-Adjusted Estimator Function}
 \usage{
-est_lin_adjusted(Y_obs, Z, X)
+est_lin_adjusted(Y_obs, Z, X, hc_type = "HC3")
 }
 \arguments{
 \item{Y_obs}{Numeric vector; observed outcomes with length n.}
@@ -27,7 +27,6 @@ A list containing:
 Calculates the Lin (2013) regression-adjusted estimator for the average treatment effect (ATE) using a fully interacted linear model with covariates, along with heteroskedasticity-consistent standard errors.
 }
 \examples{
-set.seed(123)
 X <- matrix(rnorm(200), nrow = 100, ncol = 2)
 res <- est_adjusted(Y_obs = rnorm(100), Z = rbinom(100, 1, 0.5), X = X)
 
