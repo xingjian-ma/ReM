@@ -4,7 +4,7 @@
 \alias{est_lin_adjusted}
 \title{Lin (2013) Regression-Adjusted Estimator Function}
 \usage{
-est_lin_adjusted(Y_obs, Z, X, hc_type = "HC3")
+est_lin_adjusted(Y_obs, Z, X)
 }
 \arguments{
 \item{Y_obs}{Numeric vector; observed outcomes with length n.}
@@ -18,7 +18,6 @@ A list containing:
 \describe{
 \item{tau_hat}{Numeric scalar; estimated ATE.}
 \item{se}{Numeric scalar; standard error of the estimate.}
-\item{ci{Numeric vector; 95\% confidence interval for the ATE.}
 \item{method}{Character scalar; method used ("lin adjusted").}
 \item{fit}{lm object; fitted linear model.}
 }
@@ -28,6 +27,6 @@ Calculates the Lin (2013) regression-adjusted estimator for the average treatmen
 }
 \examples{
 X <- matrix(rnorm(200), nrow = 100, ncol = 2)
-res <- est_adjusted(Y_obs = rnorm(100), Z = rbinom(100, 1, 0.5), X = X)
+res <- est_lin_adjusted(Y_obs = rnorm(100), Z = rbinom(100, 1, 0.5), X = X)
 
 }

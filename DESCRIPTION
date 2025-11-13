@@ -12,4 +12,6 @@ Imports:
     checkmate,
     lmtest,
     MASS,
-    sandwich
+    sandwich,
+    car,
+    stats

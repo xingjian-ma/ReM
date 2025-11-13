@@ -38,15 +38,15 @@ ReM <- function(X,
   checkmate::assert_matrix(X, mode = "numeric", min.rows = 2, min.cols = 1, any.missing = FALSE)
   checkmate::assert_matrix(Y, mode = "numeric", ncols = 2, nrows = nrow(X), any.missing = FALSE)
   checkmate::assert_count(n_1)
-  
-  
+
+
   p_a <- p_accept
   a <- threshold
-  
+
   checkmate::assert_numeric(p_a, lower = 0, upper = 1, len = 1, any.missing = FALSE)
   checkmate::assert_true(p_a > 0)
 
-  
+
   if (!is.null(a)){
     checkmate::assert_numeric(a, lower = 0, len = 1, any.missing = FALSE)
     checkmate::assert_true(a > 0)
@@ -55,7 +55,7 @@ ReM <- function(X,
     K <- ncol(X)
     a <- stats::qchisq(p = p_a, df = K)
   }
-  
+
   checkmate::assert_count(max_tries)
   checkmate::assert_count(seed, null.ok = TRUE)
 
@@ -74,7 +74,7 @@ ReM <- function(X,
   n_0 <- n - n_1
 
   # compute covariance estimate and its inverse
-  S   <- cov(X)
+  S   <- stats::cov(X)
   S_inv <- solve(S)
 
   for (t in seq_len(max_tries)) {
