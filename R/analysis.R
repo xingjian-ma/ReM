@@ -59,7 +59,7 @@ est_diff_unadj <- function(Y_obs, Z, X = NULL) {
     S_Y1X <- stats::cov(Y1, X1)
     S_Y0X <- stats::cov(Y0, X0)
 
-    S_tauX <- (S_Y1X + S_Y0X) %*% S_inv %*% t(S_Y1X + S_Y0X)
+    S_tauX <- (S_Y1X - S_Y0X) %*% S_inv %*% t(S_Y1X - S_Y0X)
     se_ding <-  sqrt(stats::var(Y1) / n1 + stats::var(Y0) / n0 - (1 / n) * S_tauX)
 
     return(list(
@@ -92,7 +92,7 @@ est_diff_unadj <- function(Y_obs, Z, X = NULL) {
 #' res <- est_lin_adjusted(Y_obs = rnorm(100), Z = rbinom(100, 1, 0.5), X = X)
 #'
 #' @export
-est_lin_adjusted <- function(Y_obs, Z, X) {
+est_lin_adj <- function(Y_obs, Z, X) {
 
   # Check inputs
   checkmate::assert_numeric(Y_obs, len = length(Z), any.missing = FALSE)

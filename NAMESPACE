@@ -2,7 +2,7 @@
 
 export(ReM)
 export(est_diff_unadj)
-export(est_lin_adjusted)
+export(est_lin_adj)
 export(gen_X)
 export(gen_Y)
 export(gen_beta)
